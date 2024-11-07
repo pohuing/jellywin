@@ -5,19 +5,29 @@ import 'package:chopper/chopper.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:jellywin/api/jellyfin_openapi_stable.swagger.dart';
+import 'package:jellywin/repositories/user_repository.dart';
 
 class AccountCubit extends Cubit<AccountCubitState> {
-  AccountCubit(super.initialState);
+  AccountCubit(super.initialState, this._repository) {
+    _repository.addListener(() => onUserRepositoryUpdate(_repository.users));
+  }
 
+  void onUserRepositoryUpdate(List<User> data) {}
+
+  final UserRepository _repository;
   JellyfinOpenapiStable? api;
 
-  Future<void> signIn({required Uri url, required String username, required String password}) async {
+  Future<void> signIn({
+    required Uri url,
+    required String username,
+    required String password,
+  }) async {
     final authHeaders = await buildAuthHeader();
 
     api = JellyfinOpenapiStable.create(
       baseUrl: url,
       interceptors: [
-        HeadersInterceptor({'Authorization': authHeaders})
+        HeadersInterceptor({'Authorization': authHeaders}),
       ],
     );
 
@@ -26,14 +36,6 @@ class AccountCubit extends Cubit<AccountCubitState> {
     );
 
     if (result.isSuccessful) {
-      emit(AccountCubitState(
-          sessionToken: result.bodyOrThrow.accessToken!,
-          userId: result.bodyOrThrow.user));
-
-      api?.client.interceptors
-          .removeWhere((element) => element is AuthHeaderInterceptor);
-      api?.client.interceptors.add(
-          AuthHeaderInterceptor({'Authorization': await buildAuthHeader()}));
     } else {
       emit(AccountCubitState(lastMessage: result.error.toString()));
     }

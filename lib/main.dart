@@ -2,9 +2,10 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jellywin/blocs/account_cubit.dart';
+import 'package:jellywin/repositories/user_repository.dart';
 import 'package:system_theme/system_theme.dart';
 
+import 'blocs/account_cubit.dart';
 import 'blocs/library_cubit.dart';
 import 'widgets/landing_screen/landing_screen.dart';
 import 'widgets/library_screen/library_page.dart';
@@ -17,17 +18,23 @@ Future<void> main() async {
 
   await flutter_acrylic.Window.initialize();
   await flutter_acrylic.Window.setEffect(
-      effect: flutter_acrylic.WindowEffect.mica,
-      color: Colors.transparent,
-      dark: true);
+    effect: flutter_acrylic.WindowEffect.mica,
+    color: Colors.transparent,
+    dark: true,
+  );
 
   runApp(
-    MultiBlocProvider(
+    MultiRepositoryProvider(
       providers: [
-        BlocProvider(create: (context) => LibraryCubit()),
-        BlocProvider(create: (context) => AccountCubit(AccountCubitState())),
+        RepositoryProvider(create: (context) => UserRepository()),
       ],
-      child: MyApp(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => LibraryCubit()),
+          BlocProvider(create: (context) => AccountCubit(AccountCubitState())),
+        ],
+        child: MyApp(),
+      ),
     ),
   );
 }
@@ -54,7 +61,6 @@ class _MyAppState extends State<MyApp> {
     var copyWith = FluentThemeData.dark().copyWith(
       accentColor: accentColor,
       scaffoldBackgroundColor: Colors.transparent,
-
     );
 
     return BlocListener<LibraryCubit, LibraryCubitState>(
