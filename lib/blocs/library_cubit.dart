@@ -1,13 +1,33 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:jellywin/jellyfin_service.dart';
+import 'package:jellywin/repositories/user_repository.dart';
 
+import '../api/jellyfin_openapi_stable.swagger.dart';
 
-typedef LibraryCubitState = List<(int, String)>;
+typedef LibraryCubitState = List<BaseItemDto>;
 
-class LibraryCubit extends Cubit<LibraryCubitState>{
-  LibraryCubit() : super(['a', 'b', 'c','d'].indexed.toList());
+class LibrariesCubit extends Cubit<LibraryCubitState> {
+  LibrariesCubit(this.userRepository) : super([]) {
+    userRepository.activeUserStream.listen(loadLibraries);
+  }
 
+  final UserRepository userRepository;
 
-  void setRoutes(LibraryCubitState routes){
-    emit(List.from(routes));
+  Future<void> loadLibraries(User? user) async {
+    if (user == null) {
+      emit([]);
+      return;
+    }
+
+    final libraries = await JellyfinService.loadAvailableLibraries(user);
+
+    emit(
+      libraries
+              ?.map(
+                (e) => e,
+              )
+              .toList() ??
+          [],
+    );
   }
 }

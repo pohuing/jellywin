@@ -19,16 +19,13 @@ class _LandingScreenState extends State<LandingScreen> {
 
   @override
   void initState() {
-    libraries = context.read<AccountCubit>().api?.libraryMediaFoldersGet().then(
-          (value) => value.bodyOrThrow,
-        );
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountCubit, AccountCubitState>(
-      builder: (context, state) => state.userId == null
+      builder: (context, state) => state.user == null
           ? Text('Sign in')
           : FutureBuilder(
               future: libraries,

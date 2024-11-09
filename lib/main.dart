@@ -7,6 +7,7 @@ import 'package:system_theme/system_theme.dart';
 
 import 'blocs/account_cubit.dart';
 import 'blocs/library_cubit.dart';
+import 'jellyfin_service.dart';
 import 'widgets/landing_screen/landing_screen.dart';
 import 'widgets/library_screen/library_page.dart';
 import 'widgets/scaffold_with_nested_navigation.dart';
@@ -23,6 +24,8 @@ Future<void> main() async {
     dark: true,
   );
 
+  await initDeviceConstants();
+
   runApp(
     MultiRepositoryProvider(
       providers: [
@@ -30,8 +33,15 @@ Future<void> main() async {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => LibraryCubit()),
-          BlocProvider(create: (context) => AccountCubit(AccountCubitState())),
+          BlocProvider(
+              create: (context) =>
+                  LibrariesCubit(context.read<UserRepository>())),
+          BlocProvider(
+            create: (context) => AccountCubit(
+              AccountCubitState(),
+              context.read<UserRepository>(),
+            ),
+          ),
         ],
         child: MyApp(),
       ),
@@ -51,7 +61,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    router = buildRouter(context.read<LibraryCubit>().state);
+    router = buildRouter(context.read<LibrariesCubit>().state);
     super.initState();
   }
 
@@ -63,7 +73,7 @@ class _MyAppState extends State<MyApp> {
       scaffoldBackgroundColor: Colors.transparent,
     );
 
-    return BlocListener<LibraryCubit, LibraryCubitState>(
+    return BlocListener<LibrariesCubit, LibraryCubitState>(
       listener: (context, state) => setState(() => router = buildRouter(state)),
       child: FluentApp.router(
         key: const Key('value'),
@@ -103,10 +113,9 @@ class _MyAppState extends State<MyApp> {
             ...libraries.map(
               (e) {
                 return GoRoute(
-                  path: '/library/:name',
-                  name: e.$2,
-                  builder: (context, state) =>
-                      LibraryPage(state.pathParameters['name']!),
+                  path: '/library/${e.id}',
+                  name: e.name,
+                  builder: (context, state) => LibraryPage(e.id!),
                 );
               },
             ),
