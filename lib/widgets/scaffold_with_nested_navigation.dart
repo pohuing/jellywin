@@ -1,6 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jellywin/blocs/library_cubit.dart';
+import 'package:jellywin/blocs/libraries_cubit.dart';
 
 class ScaffoldWithNestedNavigation extends StatelessWidget {
   final Widget child;

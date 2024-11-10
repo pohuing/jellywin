@@ -21,13 +21,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final pwTec = TextEditingController(text: 'admin');
   final portTec = TextEditingController(text: '8096');
 
-  var enableSignInButton = false;
+  var enableSignInButton = true;
 
   String? me;
   JsonEncoder jsonEncoder = JsonEncoder.withIndent('    ');
 
   String? get mePretty =>
       me == null ? null : jsonEncoder.convert(jsonDecode(me!));
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,12 +47,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 content: Form(
                   key: formKey,
                   autovalidateMode: AutovalidateMode.always,
-                  onChanged: () {
-                    setState(() {
-                      enableSignInButton = (formKey.currentState!.validate() ||
-                          state.user?.id != null);
-                    });
-                  },
                   child: Column(
                     children: [
                       ListTile(

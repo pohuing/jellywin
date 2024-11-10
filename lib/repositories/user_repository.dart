@@ -37,7 +37,15 @@ class UserRepository {
     _activeUsersStreamController.add(user);
   }
 
+  bool _userAlreadySignedIn(Uri url, String username){
+    return users.any((user) => user.name == username && user.serverUri == url);
+  }
+
   Future<User?> signIn(Uri url, String username, String password) async {
+    if (_userAlreadySignedIn(url, username)) {
+      return users.where((user) => user.serverUri == url && user.name == username ).first;
+    }
+
     final user = await JellyfinService.signInByNamePassword(url, username, password);
 
     if (user != null) {

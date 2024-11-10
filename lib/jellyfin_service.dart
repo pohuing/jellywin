@@ -71,12 +71,18 @@ class JellyfinService {
   }
 
   static Future<String?> loadLibraryImage(
-      User user, String libraryId, int? maxWith, int? maxHeight) async {
+    User user,
+    String libraryId,
+    int? maxWith,
+    int? maxHeight, {
+    ItemsItemIdImagesImageTypeGetImageType? type,
+  }) async {
     final api = buildApiClient(user);
+    type ??= ItemsItemIdImagesImageTypeGetImageType.primary;
 
     var result = await api.itemsItemIdImagesImageTypeGet(
       itemId: libraryId,
-      imageType: ItemsItemIdImagesImageTypeGetImageType.primary,
+      imageType: type,
       maxWidth: maxWith,
       maxHeight: maxHeight,
     );

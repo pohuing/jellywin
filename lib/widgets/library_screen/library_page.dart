@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:jellywin/api/jellyfin_openapi_stable.swagger.dart';
+import 'package:jellywin/image_service.dart';
 import 'package:jellywin/repositories/user_repository.dart';
 
 import '../../jellyfin_service.dart';
@@ -45,7 +46,7 @@ class _LibraryPageState extends State<LibraryPage> {
               child: Column(
                 children: [
                   Text(snapshot.connectionState.toString()),
-                  ProgressRing()
+                  ProgressRing(),
                 ],
               ),
             );
@@ -55,38 +56,21 @@ class _LibraryPageState extends State<LibraryPage> {
         final data = snapshot.data!;
         return ScaffoldPage(
           content: GridView.builder(
+            primary: true,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.66),
+              crossAxisCount: (MediaQuery.of(context).size.width / 400).toInt(),
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 0.66,
+            ),
             itemCount: data.length,
             itemBuilder: (context, index) {
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  String imageIdentifier = data[index].id! + constraints.maxHeight.toString() + constraints.maxWidth.toString();
-
-                  var future;
-                  if (images.containsKey(imageIdentifier)) {
-                    Future.value(images[imageIdentifier]);
-                  } else {
-                    future = JellyfinService.loadLibraryImage(
-                      user!,
-                      data[index].id!,
-                      constraints.maxWidth.toInt(),
-                      constraints.maxHeight.toInt(),
-                    ).then((value) {
-                      if (value != null && data[index].id != null) {
-                          images.putIfAbsent(imageIdentifier, () => value);
-                          return value;
-                      }
-                    });
-                  }
-
-                  return FutureBuilder(
-                    future: future,
-                    builder: (context, snapshot) => ItemCard(
-                        item: data[index], image: images[imageIdentifier]),
+                  return ItemCard(
+                    item: data[index],
+                    width: constraints.maxWidth.toInt(),
+                    height: constraints.maxHeight.toInt(),
                   );
                 },
               );
@@ -100,23 +84,34 @@ class _LibraryPageState extends State<LibraryPage> {
 
 class ItemCard extends StatelessWidget {
   final BaseItemDto item;
-  final String? image;
+  final int width;
+  final int height;
 
-  const ItemCard({super.key, required this.item, this.image});
+  const ItemCard({
+    super.key,
+    required this.item,
+    required this.width,
+    required this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 150,
-      width: 100,
-      child: Card(
-        child: Stack(
-          children: [
-            if (image != null)
-              Image.memory(Uint8List.fromList(image!.codeUnits)),
-            if (image == null) ProgressRing(),
-            Text(item.name!),
-          ],
+    return FutureBuilder(
+      future: context.read<ImageService>().getImage(item.id!, width, height, ItemsItemIdImagesImageTypeGetImageType.primary),
+      builder:(context, snapshot) => SizedBox(
+        child: Card(
+          child: Stack(
+            children: [
+              if (snapshot.data != null)
+                Image.memory(
+                  height: height.toDouble(),
+                  width: width.toDouble(),
+                  fit: BoxFit.cover,
+                  Uint8List.fromList(snapshot.data!.codeUnits),
+                ),
+              Text(item.name!),
+            ],
+          ),
         ),
       ),
     );
