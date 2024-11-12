@@ -4,7 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jellywin/image_service.dart';
 import 'package:jellywin/repositories/image_repository.dart';
+import 'package:jellywin/repositories/series_repository.dart';
 import 'package:jellywin/repositories/user_repository.dart';
+import 'package:jellywin/widgets/series_screen/series_screen.dart';
 import 'package:system_theme/system_theme.dart';
 
 import 'blocs/account_cubit.dart';
@@ -33,6 +35,7 @@ Future<void> main() async {
       providers: [
         RepositoryProvider(create: (context) => UserRepository()),
         RepositoryProvider(create: (context) => ImageRepository()),
+        RepositoryProvider(create: (context) => SeriesRepository(userRepository: context.read<UserRepository>())),
         RepositoryProvider(
           create: (context) => ImageService(
             userRepository: context.read<UserRepository>(),
@@ -125,6 +128,12 @@ class _MyAppState extends State<MyApp> {
                   path: '/library/${e.id}',
                   name: e.name,
                   builder: (context, state) => LibraryPage(e.id!),
+                  routes: [
+                    GoRoute(
+                      path: '/:seriesId',
+                      builder: (context, state) => SeriesScreen(id: state.pathParameters['seriesId']! ),
+                    ),
+                  ],
                 );
               },
             ),

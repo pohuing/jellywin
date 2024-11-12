@@ -17,7 +17,7 @@ class JellyfinService {
     String username,
     String password,
   ) async {
-    final header = await buildBaseHeader();
+    final header = await _buildBaseHeader();
 
     final client = JellyfinOpenapiStable.create(
       baseUrl: url,
@@ -115,7 +115,7 @@ class JellyfinService {
     var client = JellyfinOpenapiStable.create(
       baseUrl: user.serverUri,
       interceptors: [
-        HeadersInterceptor({'Authorization': buildAuthenticatedHeader(user)}),
+        HeadersInterceptor({'Authorization': _buildAuthenticatedHeader(user)}),
       ],
     );
 
@@ -123,7 +123,23 @@ class JellyfinService {
     return client;
   }
 
-  static String buildBaseHeader() {
+  static Future<BaseItemDtoQueryResult?> loadSeriesInfo(User user, String id) async {
+    final api = buildApiClient(user);
+
+    final result = await api.itemsGet(ids: [id]);
+    if (!result.isSuccessful) {
+      log('Failed getting loadSeriesInfo ${result.error}');
+      return null;
+    }
+
+    final body = result.bodyOrThrow;
+
+    return body;
+  }
+
+
+
+  static String _buildBaseHeader() {
     var authHeader = 'MediaBrowser ';
 
     authHeader += 'Client="Jellywin", ';
@@ -135,7 +151,7 @@ class JellyfinService {
     return authHeader;
   }
 
-  static String buildAuthenticatedHeader(User user) {
+  static String _buildAuthenticatedHeader(User user) {
     var authHeader = 'MediaBrowser ';
     authHeader += 'UserId="${user.id}", ';
     authHeader += 'Token="${user.token}", ';
@@ -148,6 +164,7 @@ class JellyfinService {
     authHeader += 'Version="$version"';
     return authHeader;
   }
+
 }
 
 Future<void> initDeviceConstants() async {

@@ -2,8 +2,10 @@ import 'dart:typed_data';
 
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jellywin/api/jellyfin_openapi_stable.swagger.dart';
 import 'package:jellywin/image_service.dart';
+import 'package:jellywin/main.dart';
 import 'package:jellywin/repositories/user_repository.dart';
 
 import '../../jellyfin_service.dart';
@@ -71,6 +73,7 @@ class _LibraryPageState extends State<LibraryPage> {
                     item: data[index],
                     width: constraints.maxWidth.toInt(),
                     height: constraints.maxHeight.toInt(),
+                    onTap: (item) => context.go('/library/${widget.libraryId}/${item.id!}'),
                   );
                 },
               );
@@ -86,12 +89,14 @@ class ItemCard extends StatelessWidget {
   final BaseItemDto item;
   final int width;
   final int height;
+  final void Function(BaseItemDto item)? onTap;
 
   const ItemCard({
     super.key,
     required this.item,
     required this.width,
     required this.height,
+    this.onTap,
   });
 
   @override
@@ -99,18 +104,21 @@ class ItemCard extends StatelessWidget {
     return FutureBuilder(
       future: context.read<ImageService>().getImage(item.id!, width, height, ItemsItemIdImagesImageTypeGetImageType.primary),
       builder:(context, snapshot) => SizedBox(
-        child: Card(
-          child: Stack(
-            children: [
-              if (snapshot.data != null)
-                Image.memory(
-                  height: height.toDouble(),
-                  width: width.toDouble(),
-                  fit: BoxFit.cover,
-                  Uint8List.fromList(snapshot.data!.codeUnits),
-                ),
-              Text(item.name!),
-            ],
+        child: GestureDetector(
+          onTap: onTap != null ? () => onTap?.call(item) : null,
+          child: Card(
+            child: Stack(
+              children: [
+                if (snapshot.data != null)
+                  Image.memory(
+                    height: height.toDouble(),
+                    width: width.toDouble(),
+                    fit: BoxFit.cover,
+                    Uint8List.fromList(snapshot.data!.codeUnits),
+                  ),
+                Text(item.name!),
+              ],
+            ),
           ),
         ),
       ),
