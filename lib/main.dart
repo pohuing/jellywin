@@ -7,6 +7,7 @@ import 'package:jellywin/repositories/image_repository.dart';
 import 'package:jellywin/repositories/series_repository.dart';
 import 'package:jellywin/repositories/user_repository.dart';
 import 'package:jellywin/widgets/series_screen/series_screen.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:system_theme/system_theme.dart';
 
 import 'blocs/account_cubit.dart';
@@ -27,6 +28,7 @@ Future<void> main() async {
     color: Colors.transparent,
     dark: true,
   );
+  MediaKit.ensureInitialized();
 
   await initDeviceConstants();
 
@@ -35,19 +37,23 @@ Future<void> main() async {
       providers: [
         RepositoryProvider(create: (context) => UserRepository()),
         RepositoryProvider(create: (context) => ImageRepository()),
-        RepositoryProvider(create: (context) => SeriesRepository(userRepository: context.read<UserRepository>())),
+        RepositoryProvider(
+          create: (context) => SeriesRepository(
+            userRepository: context.read<UserRepository>(),
+          ),
+        ),
         RepositoryProvider(
           create: (context) => ImageService(
             userRepository: context.read<UserRepository>(),
             imageRepository: context.read<ImageRepository>(),
           ),
-        )
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-              create: (context) =>
-                  LibrariesCubit(context.read<UserRepository>())),
+            create: (context) => LibrariesCubit(context.read<UserRepository>()),
+          ),
           BlocProvider(
             create: (context) => AccountCubit(
               AccountCubitState(),
@@ -131,7 +137,8 @@ class _MyAppState extends State<MyApp> {
                   routes: [
                     GoRoute(
                       path: '/:seriesId',
-                      builder: (context, state) => SeriesScreen(id: state.pathParameters['seriesId']! ),
+                      builder: (context, state) =>
+                          SeriesScreen(id: state.pathParameters['seriesId']!),
                     ),
                   ],
                 );
