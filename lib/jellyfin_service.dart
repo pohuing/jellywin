@@ -17,7 +17,7 @@ class JellyfinService {
     String username,
     String password,
   ) async {
-    final header = await _buildBaseHeader();
+    final header = _buildBaseHeader();
 
     final client = JellyfinOpenapiStable.create(
       baseUrl: url,
@@ -27,14 +27,16 @@ class JellyfinService {
     );
 
     final result = await client.usersAuthenticateByNamePost(
-        body: AuthenticateUserByName(username: username, pw: password));
+      body: AuthenticateUserByName(username: username, pw: password),
+    );
 
     if (result.isSuccessful) {
       return User(
-          serverUri: url,
-          name: username,
-          token: result.bodyOrThrow.accessToken!,
-          id: result.bodyOrThrow.serverId!);
+        serverUri: url,
+        name: username,
+        token: result.bodyOrThrow.accessToken!,
+        id: result.bodyOrThrow.serverId!,
+      );
     }
 
     return null;
@@ -59,9 +61,10 @@ class JellyfinService {
     String libraryId,
   ) async {
     var request = await buildApiClient(user).itemsGet(
-        parentId: libraryId,
-        sortOrder: [SortOrder.ascending],
-        sortBy: [ItemSortBy.name]);
+      parentId: libraryId,
+      sortOrder: [SortOrder.ascending],
+      sortBy: [ItemSortBy.sortname],
+    );
 
     if (!request.isSuccessful) {
       log('Failed to get library contents');
@@ -94,6 +97,22 @@ class JellyfinService {
     return result.body;
   }
 
+  static Future<BaseItemDtoQueryResult?> loadNextUp(
+    User user,
+    String id,
+  ) async {
+    final api = buildApiClient(user);
+    final result = await api
+        .showsNextUpGet(seriesId: id, fields: [ItemFields.mediasources]);
+
+    if (!result.isSuccessful) {
+      log('Failed to load nextUp for series $id');
+      return null;
+    }
+
+    return result.bodyOrThrow;
+  }
+
   static JellyfinOpenapiStable buildApiClient(User user) {
     var existingClient = clients
         .where(
@@ -123,7 +142,10 @@ class JellyfinService {
     return client;
   }
 
-  static Future<BaseItemDtoQueryResult?> loadSeriesInfo(User user, String id) async {
+  static Future<BaseItemDtoQueryResult?> loadSeriesInfo(
+    User user,
+    String id,
+  ) async {
     final api = buildApiClient(user);
 
     final result = await api.itemsGet(ids: [id]);
@@ -136,8 +158,6 @@ class JellyfinService {
 
     return body;
   }
-
-
 
   static String _buildBaseHeader() {
     var authHeader = 'MediaBrowser ';
@@ -164,7 +184,6 @@ class JellyfinService {
     authHeader += 'Version="$version"';
     return authHeader;
   }
-
 }
 
 Future<void> initDeviceConstants() async {

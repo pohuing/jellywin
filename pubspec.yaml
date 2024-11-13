@@ -43,6 +43,10 @@ dependencies:
   meta: ^1.15.0
   equatable: ^2.0.5
   collection: ^1.18.0
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.5
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
